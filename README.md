@@ -1,122 +1,113 @@
-# 🔧 Predictive Maintenance with Machine Learning on IBM Cloud
+# Predictive Maintenance ML System
 
-An end-to-end AI solution for predicting industrial machine failures using real-time sensor data. Developed, trained, and deployed entirely on **IBM Watsonx.ai**, this project demonstrates how cloud-based machine learning can drive intelligent, proactive maintenance strategies in modern manufacturing.
+> An end-to-end industrial machine failure prediction system using real-time sensor data and Random Forest classification.
 
----
-
-## 📌 Project Objective
-
-Industrial equipment is susceptible to unexpected failures such as **tool wear**, **power outages**, and **thermal issues**. These incidents often result in unplanned downtime, reduced productivity, and financial losses.
-
-This project builds a **predictive maintenance model** capable of forecasting specific failure types before they occur. By analyzing historical and real-time sensor data, the system enables **data-driven, proactive maintenance** rather than reactive repair.
+[Repository](https://github.com/Tusharkapoor-oop/IBM-Cloud-project)
 
 ---
 
-## 🚀 Key Highlights
+## ◈ Overview
 
-- ✅ Trained a high‑accuracy **Random Forest Classifier** to predict failure types  
-- 🧠 Built using **Python**, **Scikit‑learn**, and **Watsonx.ai Notebooks**  
-- ☁️ Deployed on **IBM Watsonx.ai Runtime** as a **RESTful API**  
-- 🧾 Supports live JSON input for real-time sensor‑based predictions  
-- 📦 Scalable cloud pipeline with secure storage via **IBM Cloud Object Storage**
+Industrial equipment such as CNC machines and industrial motors are susceptible to unexpected failures from tool wear, power fluctuations, and thermal overload. 
+
+This project implements a predictive maintenance pipeline that forecasts specific failure types before they occur. Trained and deployed entirely on **IBM Watsonx.ai**, the system analyzes 10,000+ data points of real-time sensor telemetry to enable data-driven, proactive maintenance scheduling.
 
 ---
 
-## 🛠️ Tech Stack
+## ◈ Architecture
 
-| Component             | Technology                                     |
-|-----------------------|-------------------------------------------------|
-| Cloud Infrastructure  | IBM Cloud (Free Tier)                          |
-| Model Development     | IBM Watsonx.ai Studio (Notebooks + AutoAI)     |
-| Model Deployment      | IBM Watsonx.ai Runtime (API endpoint)          |
-| Storage               | IBM Cloud Object Storage                       |
-| Language & Libraries  | Python, Pandas, NumPy, Scikit‑learn, Matplotlib |
-| Dataset               | Kaggle: Predictive Maintenance Dataset          |
+The system utilizes an incremental learning approach, allowing the model to be partially fitted (updated) with new batch data without requiring a full retraining cycle.
 
----
+```mermaid
+flowchart TD
+    subgraph Data Layer
+        A[Kaggle Telemetry CSV] --> B[Data Loader]
+        B -->|Batching| C[Preprocessing Pipeline]
+    end
 
-## 📁 Project Structure
-``
-predictive-maintenance-ibm/
-├── data/
-│   └── sensor_data.csv             # Original dataset from Kaggle
-├── notebooks/
-│   └── training_pipeline.ipynb     # Data cleaning, EDA, model training
-├── model/
-│   └── rf_classifier.pkl           # Exported trained model
-├── deployment/
-│   └── deployment_config.json      # Watsonx Runtime deployment config
-├── utils/
-│   └── preprocess.py               # Feature engineering utilities
-├── README.md
-└── requirements.txt
+    subgraph IBM Watsonx.ai
+        C --> D[Random Forest Classifier]
+        D -->|partial_fit| E[Incremental Learning]
+        E --> F[Model Storage Object]
+    end
 
-
-
+    subgraph Production
+        F --> G[Watsonx Runtime API]
+        G <-->|JSON Sensor Payload| H[Client Application]
+    end
+```
 
 ---
 
-## 🧠 ML Pipeline Overview
+## ◈ Key Engineering Decisions
 
-- **Algorithm:** Random Forest Classifier  
-- **Features:** Torque, Voltage, Temperature, Vibration, Rotational Speed  
-- **Target Classes:** Tool Wear, Heat Failure, Power Failure, No Failure  
-- **Performance:**  
-  - Accuracy: ~91%  
-  - Evaluated with Confusion Matrix, ROC Curve & Feature Importance  
-- **Training Tools:**  
-  - Watsonx.ai Studio notebooks  
-  - Hyperparameter tuning via `GridSearchCV`  
-  - 5‑fold cross‑validation
+### 1. Incremental Learning (partial_fit)
+**Problem:** Industrial sensors generate massive amounts of continuous data. Retraining a model on the entire historical dataset every day is computationally expensive.
+**Solution:** The system utilizes scikit-learn's `partial_fit` via the `lale` pipeline to incrementally train the Random Forest ensemble on new data batches in real-time.
+
+### 2. AutoAI Pipeline Optimization
+**Problem:** Selecting the right hyper-parameters for unbalanced failure datasets is time-consuming.
+**Solution:** Utilized IBM Watson AutoAI to benchmark multiple tree-ensemble classifiers, ultimately selecting a BatchedTreeEnsembleClassifier optimized for the `accuracy` scoring metric on highly imbalanced failure classes.
 
 ---
 
-## 🌐 Deployment Pipeline
+## ◈ Tech Stack
 
-The model is served via **IBM Watsonx.ai Runtime**, providing a REST API for real-time inference.
+**Model & Pipeline**
+- `Python 3.11`
+- `Scikit-learn` / `SnapML`
+- `lale` (Pipeline Architecture)
+- `Pandas` / `NumPy`
 
-**Steps:**
-1. Export trained model (`.pkl`) to IBM Cloud Object Storage  
-2. Configure and deploy model in Watsonx.ai Runtime  
-3. Expose a **REST API endpoint**  
-4. API accepts JSON sensor readings and returns:  
-   - `predicted_class`  
-   - `confidence` score
-
----
-
-## 📊 Results & Insights
-
-- Torque and temperature emerged as the strongest predictors.  
-- Model achieved high precision and recall across failure classes.  
-- Visualizations (ROC curve, confusion matrix) confirm robust performance.  
-- Real‑time API responds within milliseconds, ready for live integration.
+**Infrastructure & Deployment**
+- `IBM Watsonx.ai Studio` (Notebooks & AutoAI)
+- `IBM Watsonx.ai Runtime` (REST API Deployment)
+- `IBM Cloud Object Storage`
 
 ---
 
-## 🔮 Future Enhancements
+## ◈ Performance Metrics
 
-- Leverage LSTM or Transformer architectures for time‑series data  
-- Estimate Remaining Useful Life (RUL) of equipment  
-- Integrate with IoT platforms for streaming sensor data  
-- Deploy on edge devices for low‑latency inference  
-- Automate maintenance alerts via ERP or messaging systems
-
----
-
-## 📚 References
-
-- Kaggle Predictive Maintenance Dataset  
-- IBM Watsonx.ai Documentation  
-- Scikit‑learn Documentation  
-- Academic research on predictive maintenance and prognostics
+- **Algorithm:** BatchedTreeEnsembleClassifier (Random Forest)
+- **Features:** Torque, Voltage, Temperature, Vibration, Rotational Speed
+- **Target Classes:** Heat Dissipation Failure, Power Failure, Overstrain Failure, Tool Wear, Random Failure
+- **Accuracy:** ~91%
+- **Latency:** Millisecond-level inference via Watson REST API
 
 ---
 
-## 👨‍💻 Author
+## ◈ Getting Started
 
-**Tushar Kapoor**  
-B.Tech – Computer Science & Engineering (AI & ML)  
- Internship Project – 2025  
-📧 tusharkapoor052@gmail.com  
-🌐 (https://github.com/Tusharkapoor-oop)
+### Requirements
+- IBM Cloud Account (Watsonx.ai enabled)
+- Python 3.11+
+- Jupyter Environment
+
+### Setup
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/Tusharkapoor-oop/IBM-Cloud-project.git
+cd IBM-Cloud-project
+```
+
+2. **Install Dependencies**
+```bash
+pip install ibm-watsonx-ai autoai-libs scikit-learn snapml lale
+```
+
+3. **Run the Notebook**
+Open `Predictive Maintance ML file Tushar.ipynb` and provide your IBM Cloud API key when prompted by the `getpass` cell to authenticate with your workspace.
+
+---
+
+## ◈ Limitations & Future Work
+
+- **Time-Series Dependencies:** The current Random Forest model evaluates each sensor reading independently. Future iterations should implement LSTMs to capture sequential degradation over time.
+- **Remaining Useful Life (RUL):** The model currently predicts binary failure states. Expanding this to predict the exact RUL (in hours) would increase industrial utility.
+
+---
+
+## ◈ License
+
+Data and notebook structures subject to IBM Cloud ILAN License terms. Code modifications distributed under MIT.
